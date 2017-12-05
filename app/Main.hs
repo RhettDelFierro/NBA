@@ -1,10 +1,10 @@
 module Main where
 
-import Lib
+--import Lib
 import System.Environment (getEnv)
 
-apiKey :: String
+apiKey :: IO String
 apiKey = getEnv "API_KEY"
 
 main :: IO ()
-main = someFunc
+main = return ()
