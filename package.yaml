@@ -1,0 +1,43 @@
+name: NBA
+version: 0.1.0.0
+
+ghc-options: -Wall -Werror
+
+# global dependency:
+dependencies:
+  - base
+  - aeson
+  - bson
+  - mongoDB
+  - bytestring
+  - http-client
+  - http-conduit
+  - time
+  - text
+
+library:
+  source-dirs: src/
+  exposed-modules:
+    - Lib
+    - Models.BoxScores
+    - Models.Games
+
+  dependencies:
+    
+  
+  
+#create a section for our executables (only will have one called run-my-...
+executables:
+  run-nba:
+    source-dirs: app/
+    main: Main.hs
+    
+    dependencies:
+      NBA
+
+tests:
+  MyFirstProject-test:
+    source-dirs: test/
+    main: Spec.hs
+    dependencies:
+      NBA

@@ -1,0 +1,68 @@
+-- This file has been generated from package.yaml by hpack version 0.14.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:                NBA
+version:             0.1.0.0
+license-file:        LICENSE
+build-type:          Simple
+cabal-version:       >= 1.10
+
+library
+  hs-source-dirs:
+      src/
+  ghc-options: -Wall -Werror
+  exposed-modules:
+      Lib
+      Models.BoxScores
+      Models.Games
+  other-modules:
+      Paths_NBA
+  build-depends:
+      base
+    , aeson
+    , bson
+    , mongoDB
+    , bytestring
+    , http-client
+    , http-conduit
+    , time
+    , text
+  default-language: Haskell2010
+
+executable run-nba
+  main-is: Main.hs
+  hs-source-dirs:
+      app/
+  ghc-options: -Wall -Werror
+  build-depends:
+      base
+    , aeson
+    , bson
+    , mongoDB
+    , bytestring
+    , http-client
+    , http-conduit
+    , time
+    , text
+    , NBA
+  default-language: Haskell2010
+
+test-suite MyFirstProject-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs:
+      test/
+  ghc-options: -Wall -Werror
+  build-depends:
+      base
+    , aeson
+    , bson
+    , mongoDB
+    , bytestring
+    , http-client
+    , http-conduit
+    , time
+    , text
+    , NBA
+  default-language: Haskell2010
