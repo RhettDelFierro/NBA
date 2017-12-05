@@ -5,15 +5,18 @@ ghc-options: -Wall -Werror
 
 # global dependency:
 dependencies:
-  - base
   - aeson
+  - base
   - bson
-  - mongoDB
   - bytestring
   - http-client
   - http-conduit
-  - time
+  - lens
+  - lens-aeson
+  - mongoDB
   - text
+  - time
+  - wreq
 
 library:
   source-dirs: src/
