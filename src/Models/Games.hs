@@ -21,13 +21,13 @@ data GameEntry a = GameEntry { eid :: Integer
                              , awayTeam :: a
                              , homeTeam :: a
                              , location :: T.Text
-                             } deriving (Show, Generic)
+                             } deriving (Show, Generic, Eq)
 
 data Team = Team { tid :: Integer
                  , city :: T.Text
                  , name :: T.Text
                  , abbreviation :: T.Text
-                 } deriving (Show, Generic)
+                 } deriving (Show, Generic, Eq)
 
 instance (FromJSON a) => FromJSON (FullGameSchedule a) where
   parseJSON (Object v) = FullGameSchedule <$>

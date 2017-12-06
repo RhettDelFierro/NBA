@@ -3,12 +3,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Queries.GameQueries where
 
-import Database.MongoDB
+--import Control.Applicative
 import Control.Monad.IO.Class
-import Network.HTTP.Simple
 import Data.ByteString.UTF8
+import Data.List
+
+import Database.MongoDB
+import Network.HTTP.Simple
 import System.Environment (getEnv)
+
 import Models.Games
+
+
 
 username :: IO String
 username = getEnv "API_USERNAME"
@@ -32,23 +38,26 @@ getGamesAPI = do
                                   ]
               $ fullSeasonGames
   response <- httpJSON request
-  return $ gameEntry (getResponseBody response)
+  return . map homeTeam $ gameEntry $ getResponseBody response
 
-insertTeamsMongo :: IO [Team] -> IO [GameEntry] ->  IO ()
+insertTeamsMongo :: IO [Team] -> IO [GameEntry a] ->  IO ()
 insertTeamsMongo teams games = do
-  ts <- teams
-  ts <- games
+  ts   <- nub <$> teams
+  gs   <- games
   pipe <- connect (host "127.0.0.1")
-  ts' <- access pipe master "NBA2016-2017" (insertTeams ts)
-  gs  <- access pipe master "NBA2016-2017" (insertTeams gs)
+  let f = access pipe master "NBA2016-2017"
+  _    <- f (insertTeams ts)
+  _    <- f (insertGames gs)
   close pipe
-  print ts'
-
-
-
+  
 insertTeams :: Control.Monad.IO.Class.MonadIO m => [Team] -> Action m [Value]
-insertTeams ts = insertMany "games" $ brk ts
+insertTeams ts = insertMany "teams" $ brk ts
   where brk tms = map teamFields tms
+
+insertGames :: Control.Monad.IO.Class.MonadIO m => [GameEntry a] -> Action m [Value]
+insertGames gs = insertMany "games" $ brk gs
+  where brk gms = map (\g -> [ "id" =:  eid g, "date" =: date g ]) gms
+
 
 teamFields :: Team -> [Field]
 teamFields = (\t -> [ "tid" =: tid t
