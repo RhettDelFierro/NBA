@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Lib (module Queries.GameQueries) where
 
 --import Database.MongoDB

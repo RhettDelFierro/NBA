@@ -40,22 +40,22 @@ getGamesAPI = do
                                   ]
               $ fullSeasonGames
   response <- httpJSON request
-  return . nub . map homeTeam $ gameEntry $ getResponseBody response
+  return $ nub . map homeTeam $ gameEntry $ getResponseBody response
 
 insertTeamsMongo :: [Team] -> IO ()
 insertTeamsMongo ts = do
   pipe <- connect (host "127.0.0.1")
-  _ <- access pipe master "NBA2016-2017" (insertTeams ts)
+  e <- access pipe master "NBA2016-2017" (insertTeams ts)
   close pipe
+  print e
 
 insertTeams :: Control.Monad.IO.Class.MonadIO m => [Team] -> Action m [Value]
 insertTeams ts = insertMany "teams" $ brk ts
   where brk tms = map makeTeamFields tms
 
-insertGames :: Control.Monad.IO.Class.MonadIO m => [GameEntry a] -> Action m [Value]
+insertGames :: Control.Monad.IO.Class.MonadIO m => [GameEntry] -> Action m [Value]
 insertGames gs = insertMany "games" $ brk gs
-  where brk gms = map (\g
-                       -> [ "id" =:  eid g, "date" =: date g ]) gms
+  where brk gms = map (\g -> [ "id" =: eid g, "date" =: date g ]) gms
 
 
 makeTeamFields :: Team -> [Field]
