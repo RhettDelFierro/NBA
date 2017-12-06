@@ -5,6 +5,7 @@ module Queries.GameQueries where
 
 --import Control.Applicative
 import Control.Monad.IO.Class
+import Data.ByteString.Base64
 import Data.ByteString.UTF8
 import Data.List
 
@@ -32,35 +33,33 @@ getGamesAPI :: IO [Team]
 getGamesAPI = do
   un <- username
   pw <- password
-  let authstr = fromString $ "Basic " ++ un ++ ":" ++ pw
+  let encoded = encode . fromString $ un ++ ":" ++ pw
+      authstr = (fromString "Basic ") `mappend` encoded
       request = setRequestHeaders [ ("Accept-Encoding", "gzip")
                                   , ("Authorization", authstr)
                                   ]
               $ fullSeasonGames
   response <- httpJSON request
-  return . map homeTeam $ gameEntry $ getResponseBody response
+  return . nub . map homeTeam $ gameEntry $ getResponseBody response
 
-insertTeamsMongo :: IO [Team] -> IO [GameEntry a] ->  IO ()
-insertTeamsMongo teams games = do
-  ts   <- nub <$> teams
-  gs   <- games
+insertTeamsMongo :: [Team] -> IO ()
+insertTeamsMongo ts = do
   pipe <- connect (host "127.0.0.1")
-  let f = access pipe master "NBA2016-2017"
-  _    <- f (insertTeams ts)
-  _    <- f (insertGames gs)
+  _ <- access pipe master "NBA2016-2017" (insertTeams ts)
   close pipe
-  
+
 insertTeams :: Control.Monad.IO.Class.MonadIO m => [Team] -> Action m [Value]
 insertTeams ts = insertMany "teams" $ brk ts
-  where brk tms = map teamFields tms
+  where brk tms = map makeTeamFields tms
 
 insertGames :: Control.Monad.IO.Class.MonadIO m => [GameEntry a] -> Action m [Value]
 insertGames gs = insertMany "games" $ brk gs
-  where brk gms = map (\g -> [ "id" =:  eid g, "date" =: date g ]) gms
+  where brk gms = map (\g
+                       -> [ "id" =:  eid g, "date" =: date g ]) gms
 
 
-teamFields :: Team -> [Field]
-teamFields = (\t -> [ "tid" =: tid t
-                    , "city" =: city t
-                    , "name" =: name t
-                    , "abbreviation" =: abbreviation t])
+makeTeamFields :: Team -> [Field]
+makeTeamFields t = [ "tid" =: tid t
+                   , "city" =: city t
+                   , "name" =: name t
+                   , "abbreviation" =: abbreviation t]

@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Lib (getGames) where
+module Lib (module Queries.GameQueries) where
 
 --import Database.MongoDB
 -- import           Data.Aeson
