@@ -27,7 +27,7 @@ library:
     - Queries.GameQueries
     
   dependencies:
-  
+    - utf8-string
   
 #create a section for our executables (only will have one called run-my-...
 executables:
