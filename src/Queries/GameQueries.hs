@@ -7,7 +7,7 @@ module Queries.GameQueries where
 import Control.Monad.IO.Class
 import Data.ByteString.Base64
 import Data.ByteString.UTF8
-import Data.List
+--import Data.List
 
 import Database.MongoDB
 import Network.HTTP.Simple
@@ -29,7 +29,7 @@ fullSeasonGames = "GET https://api.mysportsfeeds.com/v1.1/pull/nba/2016-2017-reg
 getTeams :: IO ()
 getTeams = undefined
 
-getGamesAPI :: IO [Team]
+getGamesAPI :: IO FullGameSchedule
 getGamesAPI = do
   un <- username
   pw <- password
@@ -40,7 +40,7 @@ getGamesAPI = do
                                   ]
               $ fullSeasonGames
   response <- httpJSON request
-  return $ nub . map homeTeam $ gameEntry $ getResponseBody response
+  return $ getResponseBody response
 
 insertTeamsMongo :: [Team] -> IO ()
 insertTeamsMongo ts = do

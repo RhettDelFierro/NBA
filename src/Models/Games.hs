@@ -9,7 +9,8 @@ import Data.Aeson
 import Data.Time.Clock
 import qualified Data.Text as T
 
-data FullGameSchedule = FullGameSchedule {  gameEntry :: [GameEntry] } deriving (Show, Generic)
+data FullGameSchedule = FullGameSchedule { lastUpdatedOn :: UTCTime
+                                         , gameEntry :: !Array } deriving (Show, Generic)
 
 data GameEntry = GameEntry { eid :: Integer
                              , scheduleStatus :: T.Text
@@ -17,29 +18,30 @@ data GameEntry = GameEntry { eid :: Integer
                              , time :: UTCTime
                              , awayTeam :: Team
                              , homeTeam :: Team
-                             , location :: T.Text
+                             , location :: String
                              } deriving (Show, Generic, Eq)
 
 data Team = Team { tid :: Integer
-                 , city :: T.Text
-                 , name :: T.Text
-                 , abbreviation :: T.Text
+                 , city :: String
+                 , name :: String
+                 , abbreviation :: String
                  } deriving (Show, Generic, Eq)
 
 instance FromJSON FullGameSchedule where
-  parseJSON = withObject "fullgameschedule" $ \o -> do
-    gameEntry <- o .:? "gameentry" .!= []
-    return FullGameSchedule{..}
+  parseJSON (Object o) = FullGameSchedule <$>
+                         ((o .: "fullgameschedule") >>= (.: "lastUpdatedOn"))
+                     <*> ((o .: "fullgameschedule") >>= (.: "gameentry"))
+  parseJSON _          = mempty
 
 instance FromJSON GameEntry where
-    parseJSON = withObject "gameentry" $ \o -> do
-                         eid  <- o .: "id"
-                         scheduleStatus <- o .: "scheduleStatus"
-                         date <- o .: "date"
-                         time <- o .: "time"
-                         awayTeam <-  o .: "awayTeam"
-                         homeTeam <-  o .: "homeTeam"
-                         location <-  o .: "location"
-                         return GameEntry{..}
+  parseJSON (Object o) =
+    GameEntry <$> (o .: "id")
+              <*> (o .: "scheduleStatus")
+              <*> (o .: "date")
+              <*> (o .: "time")
+              <*> (o .: "awayTeam")
+              <*> (o .: "homeTeam")
+              <*> (o .: "location")
+  parseJSON _          = mempty
 
 instance FromJSON Team
