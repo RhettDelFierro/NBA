@@ -9,6 +9,4 @@ apiKey = getEnv "API_KEY"
 
 main :: IO ()
 main = do
-  return ()
-  -- getGamesAPI
-  -- return ()
+  getGamesAPI >>= (putStrLn . show)

@@ -7,8 +7,8 @@ module Queries.GameQueries where
 import Control.Monad.IO.Class
 import Data.ByteString.Base64
 import Data.ByteString.UTF8
-import Data.List
-import qualified Data.Aeson as Aeson
+--import Data.List
+--import qualified Data.Aeson as Aeson
 
 import Database.MongoDB
 import Network.HTTP.Simple
@@ -30,8 +30,8 @@ fullSeasonGames = "GET https://api.mysportsfeeds.com/v1.1/pull/nba/2016-2017-reg
 getTeams :: IO ()
 getTeams = undefined
 
-getScheduleAPI :: IO FullGameSchedule
-getScheduleAPI = do
+getGamesAPI :: IO FullGameSchedule
+getGamesAPI = do
   un <- username
   pw <- password
   let encoded = encode . fromString $ un ++ ":" ++ pw

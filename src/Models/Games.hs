@@ -1,37 +1,50 @@
-{-# LANGUAGE DeriveGeneric #-}
+--{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
+--{-# LANGUAGE RecordWildCards #-}
 module Models.Games where
 
-
-import GHC.Generics
+import Control.Monad
 import Data.Aeson
-import Data.Time.Clock
-import qualified Data.Text as T
+--import Data.Time.Clock
+--import Data.Aeson.Types
+--import qualified Data.Text as T
 
-data FullGameSchedule = FullGameSchedule { lastUpdatedOn :: UTCTime
-                                         , gameEntry :: !Array } deriving (Show, Generic)
+-- data DailyGameSchedule = DailyGameSchedule GameList
 
-data GameEntry = GameEntry { eid :: Integer
-                             , scheduleStatus :: T.Text
-                             , date :: UTCTime
-                             , time :: UTCTime
-                             , awayTeam :: Team
-                             , homeTeam :: Team
-                             , location :: String
-                             } deriving (Show, Generic, Eq)
+-- instance FromJSON DailyGameSchedule where
+--   parseJSON (Object o) =
+--     DailyGameSchedule <$> (o .: "dailygameschedule")
+--   parseJSON _          = mzero
 
-data Team = Team { tid :: Integer
+data FullGameSchedule = FullGameSchedule GameList deriving (Show, Eq)
+
+newtype GameList = GameList [GameEntry] deriving (Show, Eq)
+
+data GameEntry = GameEntry { eid :: String
+                           , scheduleStatus :: String
+                           , date :: String
+                           , time :: String
+                           , awayTeam :: Team
+                           , homeTeam :: Team
+                           , location :: String
+                           } deriving (Show, Eq)
+
+data Team = Team { tid :: String
                  , city :: String
                  , name :: String
                  , abbreviation :: String
-                 } deriving (Show, Generic, Eq)
+                 } deriving (Show, Eq)
 
 instance FromJSON FullGameSchedule where
-  parseJSON (Object o) = FullGameSchedule <$>
-                         ((o .: "fullgameschedule") >>= (.: "lastUpdatedOn"))
-                     <*> ((o .: "fullgameschedule") >>= (.: "gameentry"))
-  parseJSON _          = mempty
+  parseJSON (Object o) =
+    FullGameSchedule <$> (o .: "fullgameschedule")
+  parseJSON _          = mzero
+
+instance FromJSON GameList where
+  parseJSON (Object o) =
+    GameList <$> (o .: "gameentry")
+  parseJSON _          = mzero
+
 
 instance FromJSON GameEntry where
   parseJSON (Object o) =
@@ -42,6 +55,12 @@ instance FromJSON GameEntry where
               <*> (o .: "awayTeam")
               <*> (o .: "homeTeam")
               <*> (o .: "location")
-  parseJSON _          = mempty
+  parseJSON _         = mzero
 
-instance FromJSON Team
+instance FromJSON Team where
+  parseJSON (Object o) =
+    Team <$> (o .: "ID")
+         <*> (o .: "City")
+         <*> (o .: "Name")
+         <*> (o .: "Abbreviation")
+  parseJSON _          = mzero
