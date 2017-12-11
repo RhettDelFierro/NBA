@@ -32,9 +32,16 @@ library:
   
 #create a section for our executables (only will have one called run-my-...
 executables:
-  run-nba:
+  fill-teams-into-db-2016-2017:
     source-dirs: app/
-    main: Main.hs
+    main: FillTeamsDB.hs
+    
+    dependencies:
+      NBA
+
+  fill-games-into-db-2016-2017:
+    source-dirs: app/
+    main: FillGamesDB.hs
     
     dependencies:
       NBA

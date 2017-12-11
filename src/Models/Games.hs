@@ -3,12 +3,14 @@ module Models.Games where
 
 import Control.Monad
 import Data.Aeson
+import Data.Time.Clock
+import Data.Time.Format
 
 data FullGameSchedule = FullGameSchedule [GameEntry] deriving (Show, Eq)
 
 data GameEntry = GameEntry { eid :: String
                            , scheduleStatus :: String
-                           , date :: String
+                           , date :: UTCTime
                            , time :: String
                            , awayTeam :: Team
                            , homeTeam :: Team
@@ -30,7 +32,7 @@ instance FromJSON GameEntry where
   parseJSON (Object o) =
     GameEntry <$> (o .: "id")
               <*> (o .: "scheduleStatus")
-              <*> (o .: "date")
+              <*> (parseGameTime <$> o .: "date")
               <*> (o .: "time")
               <*> (o .: "awayTeam")
               <*> (o .: "homeTeam")
@@ -44,3 +46,9 @@ instance FromJSON Team where
          <*> (o .: "Name")
          <*> (o .: "Abbreviation")
   parseJSON _          = mzero
+
+parseGameTime :: String -> UTCTime
+parseGameTime t =
+  case parseTimeM True defaultTimeLocale "%F" t of
+    Just d -> d
+    Nothing -> error "could not parse date"

@@ -17,7 +17,6 @@ import System.Environment (getEnv)
 import Models.Games
 
 
-
 username :: IO String
 username = getEnv "API_USERNAME"
 
@@ -46,19 +45,27 @@ getGamesAPI = do
 filterUniqueTeams :: FullGameSchedule -> [Team]
 filterUniqueTeams (FullGameSchedule gs) = nub $ map homeTeam gs
 
+convertGameTimes :: FullGameSchedule -> [GameEntry]
+convertGameTimes (FullGameSchedule gs) = gs
+
 insertTeamsMongo :: [Team] -> IO ()
 insertTeamsMongo ts = do
   pipe <- connect (host "127.0.0.1")
   _ <- access pipe master "NBA2016-2017" (insertTeams ts)
   close pipe
 
+insertGamesMongo :: [GameEntry] -> IO ()
+insertGamesMongo gs = do
+  pipe <- connect (host "127.0.0.1")
+  _ <- access pipe master "NBA2016-2017" (insertGames gs)
+  close pipe
+
+
 insertTeams :: Control.Monad.IO.Class.MonadIO m => [Team] -> Action m [Value]
-insertTeams ts = insertMany "teams" $ brk ts
-  where brk tms = map makeTeamFields tms
+insertTeams ts = insertMany "teams" $ map makeTeamFields ts
 
 insertGames :: Control.Monad.IO.Class.MonadIO m => [GameEntry] -> Action m [Value]
-insertGames gs = insertMany "games" $ brk gs
-  where brk gms = map (\g -> [ "id" =: eid g, "date" =: date g ]) gms
+insertGames gs = insertMany "games" $ map makeGameFields gs
 
 
 makeTeamFields :: Team -> [Field]
@@ -66,3 +73,10 @@ makeTeamFields t = [ "tid" =: tid t
                    , "city" =: city t
                    , "name" =: name t
                    , "abbreviation" =: abbreviation t]
+
+makeGameFields :: GameEntry -> [Field]
+makeGameFields g = [ "gid" =: eid g
+                   , "date" =: date g
+                   , "homeTeamID" =: (tid $ homeTeam g)
+                   , "awayTeamID" =: (tid $ awayTeam g)]
+
