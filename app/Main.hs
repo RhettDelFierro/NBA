@@ -9,4 +9,5 @@ apiKey = getEnv "API_KEY"
 
 main :: IO ()
 main = do
-  getGamesAPI >>= (putStrLn . show)
+  schedule <- getGamesAPI
+  insertTeamsMongo $ filterUniqueTeams schedule --want to insert these into DB.

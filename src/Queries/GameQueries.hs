@@ -7,7 +7,7 @@ module Queries.GameQueries where
 import Control.Monad.IO.Class
 import Data.ByteString.Base64
 import Data.ByteString.UTF8
---import Data.List
+import Data.List
 --import qualified Data.Aeson as Aeson
 
 import Database.MongoDB
@@ -43,15 +43,14 @@ getGamesAPI = do
   response <- httpJSON request
   return $ getResponseBody response
 
--- getGames :: FullGameSchedule -> [Team]
--- getGames = map homeTeam . nub . Aeson.decode <$> 
+filterUniqueTeams :: FullGameSchedule -> [Team]
+filterUniqueTeams (FullGameSchedule gs) = nub $ map homeTeam gs
 
 insertTeamsMongo :: [Team] -> IO ()
 insertTeamsMongo ts = do
   pipe <- connect (host "127.0.0.1")
-  e <- access pipe master "NBA2016-2017" (insertTeams ts)
+  _ <- access pipe master "NBA2016-2017" (insertTeams ts)
   close pipe
-  print e
 
 insertTeams :: Control.Monad.IO.Class.MonadIO m => [Team] -> Action m [Value]
 insertTeams ts = insertMany "teams" $ brk ts
