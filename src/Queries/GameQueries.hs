@@ -45,28 +45,23 @@ getGamesAPI = do
 filterUniqueTeams :: FullGameSchedule -> [Team]
 filterUniqueTeams (FullGameSchedule gs) = nub $ map homeTeam gs
 
-convertGameTimes :: FullGameSchedule -> [GameEntry]
-convertGameTimes (FullGameSchedule gs) = gs
-
 insertTeamsMongo :: [Team] -> IO ()
 insertTeamsMongo ts = do
   pipe <- connect (host "127.0.0.1")
   _ <- access pipe master "NBA2016-2017" (insertTeams ts)
   close pipe
 
-insertGamesMongo :: [GameEntry] -> IO ()
-insertGamesMongo gs = do
+insertGamesMongo :: FullGameSchedule -> IO ()
+insertGamesMongo fullgameschedule = do
   pipe <- connect (host "127.0.0.1")
-  _ <- access pipe master "NBA2016-2017" (insertGames gs)
+  _ <- access pipe master "NBA2016-2017" (insertGames fullgameschedule)
   close pipe
-
 
 insertTeams :: Control.Monad.IO.Class.MonadIO m => [Team] -> Action m [Value]
 insertTeams ts = insertMany "teams" $ map makeTeamFields ts
 
-insertGames :: Control.Monad.IO.Class.MonadIO m => [GameEntry] -> Action m [Value]
-insertGames gs = insertMany "games" $ map makeGameFields gs
-
+insertGames :: Control.Monad.IO.Class.MonadIO m => FullGameSchedule -> Action m [Value]
+insertGames (FullGameSchedule gs) = insertMany "games" $ map makeGameFields gs
 
 makeTeamFields :: Team -> [Field]
 makeTeamFields t = [ "tid" =: tid t
