@@ -1,4 +1,5 @@
-module Lib (module Queries.GameQueries) where
+module Lib ( module Queries.GameQueries
+           , module Queries.BoxScoreQueries) where
 
 --import Database.MongoDB
 -- import           Data.Aeson
@@ -6,3 +7,4 @@ module Lib (module Queries.GameQueries) where
 -- import           Network.HTTP.Simple
 -- import Models.Games
 import Queries.GameQueries
+import Queries.BoxScoreQueries

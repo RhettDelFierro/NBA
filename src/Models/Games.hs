@@ -6,7 +6,7 @@ import Data.Aeson
 import Data.Time.Clock
 import Data.Time.Format
 
-data FullGameSchedule = FullGameSchedule [GameEntry] deriving (Show, Eq)
+newtype FullGameSchedule = FullGameSchedule [GameEntry] deriving (Show, Eq)
 
 data GameEntry = GameEntry { eid :: String
                            , scheduleStatus :: String

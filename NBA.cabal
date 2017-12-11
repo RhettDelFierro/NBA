@@ -17,19 +17,23 @@ library
       Models.BoxScores
       Models.Games
       Queries.GameQueries
+      Queries.BoxScoreQueries
   other-modules:
       Paths_NBA
   build-depends:
       aeson
+    , async
     , base
     , base64-bytestring
     , bson
     , bytestring
     , http-client
     , http-conduit
+    , http-types
     , lens
     , lens-aeson
     , mongoDB
+    , stm
     , text
     , time
     , wreq
@@ -43,15 +47,18 @@ executable fill-games-into-db-2016-2017
   ghc-options: -Wall -Werror
   build-depends:
       aeson
+    , async
     , base
     , base64-bytestring
     , bson
     , bytestring
     , http-client
     , http-conduit
+    , http-types
     , lens
     , lens-aeson
     , mongoDB
+    , stm
     , text
     , time
     , wreq
@@ -67,15 +74,18 @@ executable fill-teams-into-db-2016-2017
   ghc-options: -Wall -Werror
   build-depends:
       aeson
+    , async
     , base
     , base64-bytestring
     , bson
     , bytestring
     , http-client
     , http-conduit
+    , http-types
     , lens
     , lens-aeson
     , mongoDB
+    , stm
     , text
     , time
     , wreq
@@ -92,15 +102,18 @@ test-suite MyFirstProject-test
   ghc-options: -Wall -Werror
   build-depends:
       aeson
+    , async
     , base
     , base64-bytestring
     , bson
     , bytestring
     , http-client
     , http-conduit
+    , http-types
     , lens
     , lens-aeson
     , mongoDB
+    , stm
     , text
     , time
     , wreq

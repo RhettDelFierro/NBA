@@ -6,15 +6,18 @@ ghc-options: -Wall -Werror
 # global dependency:
 dependencies:
   - aeson
+  - async
   - base
   - base64-bytestring
   - bson
   - bytestring
   - http-client
   - http-conduit
+  - http-types
   - lens
   - lens-aeson
   - mongoDB
+  - stm
   - text
   - time
   - wreq
@@ -26,6 +29,7 @@ library:
     - Models.BoxScores
     - Models.Games
     - Queries.GameQueries
+    - Queries.BoxScoreQueries
     
   dependencies:
     - utf8-string
