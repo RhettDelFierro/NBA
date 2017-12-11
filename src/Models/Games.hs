@@ -1,24 +1,10 @@
---{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
---{-# LANGUAGE RecordWildCards #-}
 module Models.Games where
 
 import Control.Monad
 import Data.Aeson
---import Data.Time.Clock
---import Data.Aeson.Types
---import qualified Data.Text as T
 
--- data DailyGameSchedule = DailyGameSchedule GameList
-
--- instance FromJSON DailyGameSchedule where
---   parseJSON (Object o) =
---     DailyGameSchedule <$> (o .: "dailygameschedule")
---   parseJSON _          = mzero
-
-data FullGameSchedule = FullGameSchedule GameList deriving (Show, Eq)
-
-newtype GameList = GameList [GameEntry] deriving (Show, Eq)
+data FullGameSchedule = FullGameSchedule [GameEntry] deriving (Show, Eq)
 
 data GameEntry = GameEntry { eid :: String
                            , scheduleStatus :: String
@@ -37,14 +23,8 @@ data Team = Team { tid :: String
 
 instance FromJSON FullGameSchedule where
   parseJSON (Object o) =
-    FullGameSchedule <$> (o .: "fullgameschedule")
+    FullGameSchedule <$> ((o .: "fullgameschedule") >>= (.: "gameentry"))
   parseJSON _          = mzero
-
-instance FromJSON GameList where
-  parseJSON (Object o) =
-    GameList <$> (o .: "gameentry")
-  parseJSON _          = mzero
-
 
 instance FromJSON GameEntry where
   parseJSON (Object o) =
