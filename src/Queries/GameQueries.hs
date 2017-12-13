@@ -7,9 +7,7 @@ import Control.Monad.IO.Class
 import Data.ByteString.Base64
 import Data.ByteString.UTF8
 import Data.List
-
 import Database.MongoDB
-import Network.HTTP.Client (setQueryString)
 import Network.HTTP.Simple
 import System.Environment (getEnv)
 
@@ -23,12 +21,6 @@ password = getEnv "API_PASSWORD"
 
 fullSeasonGames :: Request
 fullSeasonGames = "GET https://api.mysportsfeeds.com/v1.1/pull/nba/2016-2017-regular/full_game_schedule.json"
-
-singleBoxscoreReq :: Request
-singleBoxscoreReq = "GET https://api.mysportsfeeds.com/v1.1/pull/nba/2016-2017-regular/game_boxscore.json?"
-
-buildQuery :: ByteString -> [(ByteString, Maybe ByteString)]
-buildQuery gameid = [("gameid", Just gameid)]
 
 getTeams :: IO ()
 getTeams = undefined
@@ -44,20 +36,6 @@ getGamesAPI = do
                                   , ("force", "false")
                                   ]
               $ fullSeasonGames
-  response <- httpJSON request
-  return $ getResponseBody response
-
---may have to use applicative: pull each query, execute it and tally at the end.
-getBoxScoreAPI :: IO FullGameSchedule
-getBoxScoreAPI = do
-  un <- username
-  pw <- password
-  let encoded = encode . fromString $ un ++ ":" ++ pw
-      authstr = (fromString "Basic ") `mappend` encoded
-      request = setRequestHeaders [ ("Accept-Encoding", "gzip")
-                                  , ("Authorization", authstr)
-                                  ]
-              $ setQueryString (buildQuery "35144") singleBoxscoreReq
   response <- httpJSON request
   return $ getResponseBody response
 

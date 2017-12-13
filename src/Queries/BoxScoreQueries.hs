@@ -1,59 +1,44 @@
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Queries.BoxScoreQueries where
 
-import Control.Concurrent.Async (async)
-import Control.Concurrent (threadDelay)
-import Control.Monad (forM_)
+import Control.Concurrent.Async
+import Data.ByteString.Base64
+import Data.ByteString.UTF8
+import Database.MongoDB
+import Database.MongoDB (rest, find)
+import Models.BoxScores
+import Network.HTTP.Simple
+import Network.HTTP.Client (setQueryString)
+import Queries.GameQueries (username, password)
 
-import Control.Concurrent
-  (Chan, newChan, readChan, writeChan)
-import Control.Concurrent.STM
-import Prelude hiding (sum)
-import qualified Data.List as L
+--get records from DB
+--use this to perform queries on the urls:
+--mapConcurrently :: Traversable t => (a -> IO b) -> t a -> IO (t b)
+--put records into db from queries
+--pages <- mapConcurrently getURL ["url1", "url2", "url3"]
 
-sum :: [Int] -> Chan Int -> IO ()
-sum xs chan = do
-  let ret = L.sum xs
-  writeChan chan ret
+singleBoxscoreReq :: Request
+singleBoxscoreReq = "GET https://api.mysportsfeeds.com/v1.1/pull/nba/2016-2017-regular/game_boxscore.json?"
 
-main :: IO ()
-main = do
-  let s = [7, 2, 8, -9, 4, 0]
-  c <- newChan
-  _ <- async $ sum (drop (length s `div` 2) s) c
-  _ <- async $ sum (take (length s `div` 2) s) c
-  {- `sequence` run a list of actions -}
-  [x, y] <- sequence [readChan c, readChan c]
-  print (x, y, x+y)
+buildQuery :: ByteString -> [(ByteString, Maybe ByteString)]
+buildQuery gameid = [("gameid", Just gameid)]
 
-{- STM version -}
+--may have to use applicative: pull each query, execute it and tally at the end.
+getOneBoxScoreAPI :: [(ByteString, Maybe ByteString)] -> IO GameBoxScore
+getOneBoxScoreAPI query = do
+  un <- username
+  pw <- password
+  let encoded = encode . fromString $ un ++ ":" ++ pw
+      authstr = (fromString "Basic ") `mappend` encoded
+      request = setRequestHeaders [ ("Accept-Encoding", "gzip")
+                                  , ("Authorization", authstr)
+                                  ]
+              $ setQueryString query singleBoxscoreReq
+  response <- httpJSON request
+  return $ getResponseBody response
 
-sumBySTM :: [Int] -> TQueue Int -> IO ()
-sumBySTM xs chan = do
-  let ret = L.sum xs
-  atomically $ writeTQueue chan ret
-
-mainBySTM :: IO ()
-mainBySTM = do
-  let s = [7, 2, 8, -9, 4, 0]
-  c <- atomically $ newTQueue
-  _ <- async $ sumBySTM (drop (length s `div` 2) s) c
-  _ <- async $ sumBySTM (take (length s `div` 2) s) c
-  [x, y] <- sequence [ atomically (readTQueue c)
-                     , atomically (readTQueue c)]
-  print (x, y, x+y)
-
-
-{-
-say :: String -> IO ()
-say s = forM_ [0..4] $ \_ -> do
-  threadDelay $ 100 * 10^3
-  putStrLn s
-
-main :: IO ()
-main = do
-  _ <- async $ say "world"
-  say "hello"
-
-  
--}
+getAllGamesMongo :: Action IO [Document]
+getAllGamesMongo = rest =<< find (select [] "games")
