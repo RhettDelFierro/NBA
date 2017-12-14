@@ -5,11 +5,12 @@
 module Queries.BoxScoreQueries where
 
 import Control.Concurrent.Async
+import qualified Data.Bson as B
 import Data.ByteString.Base64
 import Data.ByteString.UTF8
 import Database.MongoDB
-import Database.MongoDB (rest, find)
 import Models.BoxScores
+import Models.Games
 import Network.HTTP.Simple
 import Network.HTTP.Client (setQueryString)
 import Queries.GameQueries (username, password)
@@ -40,5 +41,29 @@ getOneBoxScoreAPI query = do
   response <- httpJSON request
   return $ getResponseBody response
 
+--we need the games so we can get the ids:
 getAllGamesMongo :: Action IO [Document]
 getAllGamesMongo = rest =<< find (select [] "games")
+
+accumulateGameIDS :: Action IO [Document] -> Action IO [String]
+accumulateGameIDS mdocs = map (B.lookup "gid") <$> mdocs
+
+allGameIds :: Action IO [String]
+allGameIds = accumulateGameIDS  getAllGamesMongo
+
+--only thing that didn't need to be done concurrently really.
+buildReqs :: IO [[(ByteString, Maybe ByteString)]]
+buildReqs = do
+  pipe <- connect (host "127.0.0.1")
+  ids <- access pipe master "NBA2016-2017" allGameIds
+  return $ map (buildQuery . fromString) ids
+
+
+
+
+-- makeReq :: IO ()
+-- makeReq = do
+--   games <- getAllGamesMongo
+--   ids   <- accumulateGameIDS games
+--   score <- map getOneBoxScoreAPI $ map buildQuery ids
+--   return ()
