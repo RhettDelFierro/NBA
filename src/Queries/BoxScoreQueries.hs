@@ -7,10 +7,13 @@ module Queries.BoxScoreQueries where
 import Control.Concurrent.Async
 import qualified Data.Bson as B
 import Data.ByteString.Base64
-import Data.ByteString.UTF8
+import Data.ByteString.UTF8 hiding (foldl)
+import Data.Foldable (foldl)
+import Data.Monoid
 import Database.MongoDB
 import Models.BoxScores
-import Models.Games
+
+--import Models.Games hiding (awayTeam, homeTeam)
 import Network.HTTP.Simple
 import Network.HTTP.Client (setQueryString)
 import Queries.GameQueries (username, password)
@@ -52,15 +55,20 @@ allGameIds :: Action IO [String]
 allGameIds = accumulateGameIDS  getAllGamesMongo
 
 --only thing that didn't need to be done concurrently really.
-buildReqs :: IO [[(ByteString, Maybe ByteString)]]
-buildReqs = do
+buildReqStrs :: IO [[(ByteString, Maybe ByteString)]]
+buildReqStrs = do
   pipe <- connect (host "127.0.0.1")
   ids <- access pipe master "NBA2016-2017" allGameIds
   return $ map (buildQuery . fromString) ids
 
+makeReqs :: IO [TeamStats]
+makeReqs = do
+  qs <- buildReqStrs
+  bs <- mapConcurrently getOneBoxScoreAPI qs
+  return $ combineBoxScores bs
 
-
-
+combineBoxScores :: [GameBoxScore] -> [TeamStats]
+combineBoxScores bs = foldl (\a -> \b -> (<>) [(awayTeam b), (homeTeam b)] a) [] bs
 -- makeReq :: IO ()
 -- makeReq = do
 --   games <- getAllGamesMongo

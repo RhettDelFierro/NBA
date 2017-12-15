@@ -45,11 +45,13 @@ data TeamStats = TeamStats { fg2PtAtt  :: String
                            , offReb :: String
                            , defReb :: String
                            , ast :: String
+                           , pts :: String
                            , tov :: String
                            , stl :: String
                            , blk :: String
                            , fouls :: String
                            , techFouls :: String
+                           , plusMinus :: String
                            } deriving (Show, Eq)
 
 instance FromJSON GameBoxScore where
@@ -97,11 +99,13 @@ instance FromJSON TeamStats where
               <*> ((o .: "OffReb") >>= (.: "#text"))
               <*> ((o .: "DefReb") >>= (.: "#text"))
               <*> ((o .: "Ast") >>= (.: "#text"))
+              <*> ((o .: "Pts") >>= (.: "#text"))
               <*> ((o .: "Tov") >>= (.: "#text"))
               <*> ((o .: "Stl") >>= (.: "#text"))
               <*> ((o .: "Blk") >>= (.: "#text"))
               <*> ((o .: "Fouls") >>= (.: "#text"))
               <*> ((o .: "FoulTech") >>= (.: "#text"))
+              <*> ((o .: "PlusMinus") >>= (.: "#text"))
   parseJSON _          = mzero
 
 parseGameTimeQuarter :: String -> UTCTime
