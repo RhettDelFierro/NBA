@@ -40,6 +40,34 @@ library
     , utf8-string
   default-language: Haskell2010
 
+executable fill-boxscores-into-db-2016-2017
+  main-is: FillBoxScoresDB.hs
+  hs-source-dirs:
+      app/
+  ghc-options: -Wall -Werror
+  build-depends:
+      aeson
+    , async
+    , base
+    , base64-bytestring
+    , bson
+    , bytestring
+    , http-client
+    , http-conduit
+    , http-types
+    , lens
+    , lens-aeson
+    , mongoDB
+    , stm
+    , text
+    , time
+    , wreq
+    , NBA
+  other-modules:
+      FillGamesDB
+      FillTeamsDB
+  default-language: Haskell2010
+
 executable fill-games-into-db-2016-2017
   main-is: FillGamesDB.hs
   hs-source-dirs:
@@ -64,6 +92,7 @@ executable fill-games-into-db-2016-2017
     , wreq
     , NBA
   other-modules:
+      FillBoxScoresDB
       FillTeamsDB
   default-language: Haskell2010
 
@@ -91,6 +120,7 @@ executable fill-teams-into-db-2016-2017
     , wreq
     , NBA
   other-modules:
+      FillBoxScoresDB
       FillGamesDB
   default-language: Haskell2010
 

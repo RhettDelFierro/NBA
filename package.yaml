@@ -50,6 +50,13 @@ executables:
     dependencies:
       NBA
 
+  fill-boxscores-into-db-2016-2017:
+    source-dirs: app/
+    main: FillBoxScoresDB.hs
+    
+    dependencies:
+      NBA
+
 tests:
   MyFirstProject-test:
     source-dirs: test/
