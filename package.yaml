@@ -28,8 +28,11 @@ library:
     - Lib
     - Models.BoxScores
     - Models.Games
+    - Models.TeamGameLogs
     - Queries.GameQueries
     - Queries.BoxScoreQueries
+    - Queries.TeamGameLogs
+    
     
   dependencies:
     - utf8-string

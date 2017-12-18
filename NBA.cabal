@@ -16,8 +16,10 @@ library
       Lib
       Models.BoxScores
       Models.Games
+      Models.TeamGameLogs
       Queries.GameQueries
       Queries.BoxScoreQueries
+      Queries.TeamGameLogs
   other-modules:
       Paths_NBA
   build-depends:
