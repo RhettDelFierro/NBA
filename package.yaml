@@ -31,7 +31,7 @@ library:
     - Models.TeamGameLogs
     - Queries.GameQueries
     - Queries.BoxScoreQueries
-    - Queries.TeamGameLogs
+    - Queries.GameLogQueries
     
     
   dependencies:

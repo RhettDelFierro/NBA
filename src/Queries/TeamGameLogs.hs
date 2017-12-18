@@ -1,2 +1,0 @@
-module Queries.TeamGameLogs where
-
