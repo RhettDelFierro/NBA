@@ -42,20 +42,23 @@ getOneGameLogAPI query = do
   return $ getResponseBody response
 
 --we need the games so we can get the ids:
-getAllTeamsMongo :: Action IO [Document]
-getAllTeamsMongo = rest =<< find (select [] "teams")
+getAllTeamsMongo :: Action IO [String]
+getAllTeamsMongo = do
+  ext <- find (select [] "teams")
+  ent <- rest =<< (return ext)
+  return $ map (typed. (valueAt "abbreviation")) ent
 
 accumulateTeams :: Action IO [Document] -> Action IO [String]
 accumulateTeams mdocs = (map (B.lookup "abbreviation")) <$> mdocs
 
-allAbbreviations :: Action IO [String]
-allAbbreviations = accumulateTeams getAllTeamsMongo
+-- allAbbreviations :: Action IO [String]
+-- allAbbreviations = accumulateTeams getAllTeamsMongo
 
 --only thing that didn't need to be done concurrently really.
 buildGameLogReqStrs :: IO [[(ByteString, Maybe ByteString)]]
 buildGameLogReqStrs = do
   pipe <- connect (host "127.0.0.1")
-  abbrs <- access pipe master "NBA2016-2017" allAbbreviations
+  abbrs <- access pipe master "NBA2016-2017" getAllTeamsMongo
   return $ map (buildGameLogQuery . fromString) abbrs
 
 makeGameLogReqs :: IO [TeamGameLogs]
