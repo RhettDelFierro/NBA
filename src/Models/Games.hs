@@ -9,7 +9,6 @@ import Data.Time.Format
 newtype FullGameSchedule = FullGameSchedule [GameEntry] deriving (Show, Eq)
 
 data GameEntry = GameEntry { eid :: String
-                           , scheduleStatus :: String
                            , date :: UTCTime
                            , time :: String
                            , awayTeam :: Team
@@ -31,7 +30,6 @@ instance FromJSON FullGameSchedule where
 instance FromJSON GameEntry where
   parseJSON (Object o) =
     GameEntry <$> (o .: "id")
-              <*> (o .: "scheduleStatus")
               <*> (parseGameTime <$> o .: "date")
               <*> (o .: "time")
               <*> (o .: "awayTeam")
