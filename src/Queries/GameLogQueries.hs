@@ -2,29 +2,30 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Queries.GameLogsQueries where
+module Queries.GameLogQueries where
 
-import Control.Concurrent.Async
+--import Control.Concurrent.Async
 import Control.Monad.IO.Class
 import qualified Data.Bson as B
 import Data.ByteString.Base64
 import Data.ByteString.UTF8 hiding (foldl)
-import Data.Foldable (foldl)
-import Data.Monoid
+--import Data.Foldable (foldl)
+--import Data.Monoid
 import Database.MongoDB
-import Models.BoxScores
+import Models.BoxScores as BS hiding (game)
 import Models.Games (eid)
 import Models.TeamGameLogs -- TeamGameLogs | GameLog
 import Network.HTTP.Simple
 import Network.HTTP.Client (setQueryString)
 import Queries.GameQueries (username, password)
 
+
 gameLogReq :: Request
 gameLogReq =
   "GET https://api.mysportsfeeds.com/v1.1/pull/nba/2016-2017-regular/team_gamelogs.json?"
 
-buildQuery :: ByteString -> [(ByteString, Maybe ByteString)]
-buildQuery abbr = [("team", Just abbr)]
+buildGameLogQuery :: ByteString -> [(ByteString, Maybe ByteString)]
+buildGameLogQuery abbr = [("team", Just abbr)]
 
 --may have to use applicative: pull each query, execute it and tally at the end.
 getOneGameLogAPI :: [(ByteString, Maybe ByteString)] -> IO TeamGameLogs
@@ -45,55 +46,58 @@ getAllTeamsMongo :: Action IO [Document]
 getAllTeamsMongo = rest =<< find (select [] "teams")
 
 accumulateTeams :: Action IO [Document] -> Action IO [String]
-accumulateTeams mdocs = map (B.lookup "abbreviation") <$> mdocs
+accumulateTeams mdocs = (map (B.lookup "abbreviation")) <$> mdocs
 
 allAbbreviations :: Action IO [String]
 allAbbreviations = accumulateTeams getAllTeamsMongo
 
 --only thing that didn't need to be done concurrently really.
-buildReqStrs :: IO [[(ByteString, Maybe ByteString)]]
-buildReqStrs = do
+buildGameLogReqStrs :: IO [[(ByteString, Maybe ByteString)]]
+buildGameLogReqStrs = do
   pipe <- connect (host "127.0.0.1")
   abbrs <- access pipe master "NBA2016-2017" allAbbreviations
-  return $ map (buildQuery . fromString) abbrs
+  return $ map (buildGameLogQuery . fromString) abbrs
 
-makeReqs :: IO [[GameLog]]
-makeReqs = do
-  qs <- buildReqStrs
+makeGameLogReqs :: IO [TeamGameLogs]
+makeGameLogReqs = do
+  qs <- buildGameLogReqStrs
   gl <- traverse getOneGameLogAPI qs
-  return $ map gameLogs gl
+  return gl
 
+leapGameLogs :: [TeamGameLogs] -> [[GameLog]]
+leapGameLogs = map gameLogs
+-- makeReqs >>= 
 -- combineBoxScores :: TeamGameLogs -> [StatsWithGameID]
 -- combineBoxScores bs =
 --   foldl (\a -> \b -> (<>) [StatsWithGameID (eid $ game b) (awayTeam b)
 --                           , StatsWithGameID (eid $ game b) (homeTeam b)] a) [] bs
 
--- insertBoxScoresMongo :: [StatsWithGameID] -> IO ()
--- insertBoxScoresMongo ts = do
---   pipe <- connect (host "127.0.0.1")
---   _ <- access pipe master "NBA2016-2017" (insertBoxScores ts)
---   close pipe
+insertGameLogsMongo :: [[GameLog]] -> IO ()
+insertGameLogsMongo ts = do
+  pipe <- connect (host "127.0.0.1")
+  _ <- access pipe master "NBA2016-2017" (traverse insertGameLogs ts)
+  close pipe
 
--- insertBoxScores :: MonadIO m => [StatsWithGameID] -> Action m [Value]
--- insertBoxScores ts = insertMany "boxscores" $ map makeBoxScoreFields ts
+insertGameLogs :: MonadIO m => [GameLog] -> Action m [Value]
+insertGameLogs ts = insertMany "boxscores" $ map makeGameLogFields ts
 
--- makeBoxScoreFields :: StatsWithGameID -> [Field]
--- makeBoxScoreFields (StatsWithGameID gid ts) =
---                      [ "gid" =: gid
---                      , "fg2PtAtt" =: (read $ fg2PtAtt ts :: Float)
---                      , "fg2PtMade" =: (read $ fg2PtMade ts :: Float)
---                      , "fg3PtAtt" =: (read $ fg3PtAtt ts :: Float)
---                      , "fg3PtMade" =: (read $ fg3PtMade ts :: Float)
---                      , "ftAtt" =: (read $ ftAtt ts :: Float)
---                      , "ftMade" =: (read $ ftMade ts :: Float)
---                      , "offReb" =: (read $ offReb ts :: Float)
---                      , "defReb" =: (read $ defReb ts :: Float)
---                      , "ast" =: (read $ ast ts :: Float)
---                      , "pts" =: (read $ pts ts :: Float)
---                      , "tov" =: (read $ tov ts :: Float)
---                      , "stl" =: (read $ stl ts :: Float)
---                      , "blk" =: (read $ blk ts :: Float)
---                      , "fouls" =: (read $ fouls ts :: Float)
---                      , "techFouls" =: (read $ techFouls ts :: Float)
---                      , "plusMinus" =: (read $ plusMinus ts :: Float)]
+makeGameLogFields :: GameLog -> [Field]
+makeGameLogFields gl =
+                     [ "gid" =: (eid $ game gl)
+                     , "fg2PtAtt" =: (read $ fg2PtAtt $ stats gl :: Float)
+                     , "fg2PtMade" =: (read $ fg2PtMade $ stats gl :: Float)
+                     , "fg3PtAtt" =: (read $ fg3PtAtt $ stats gl :: Float)
+                     , "fg3PtMade" =: (read $ fg3PtMade $ stats gl :: Float)
+                     , "ftAtt" =: (read $ ftAtt $ stats gl :: Float)
+                     , "ftMade" =: (read $ ftMade $ stats gl :: Float)
+                     , "offReb" =: (read $ offReb $ stats gl :: Float)
+                     , "defReb" =: (read $ defReb $ stats gl :: Float)
+                     , "ast" =: (read $ ast $ stats gl :: Float)
+                     , "pts" =: (read $ pts $ stats gl :: Float)
+                     , "tov" =: (read $ tov $ stats gl :: Float)
+                     , "stl" =: (read $ stl $ stats gl :: Float)
+                     , "blk" =: (read $ blk $ stats gl :: Float)
+                     , "fouls" =: (read $ fouls $ stats gl :: Float)
+                     , "techFouls" =: (read $ techFouls $ stats gl :: Float)
+                     , "plusMinus" =: (read $ plusMinus $ stats gl :: Float)]
 

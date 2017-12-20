@@ -60,6 +60,13 @@ executables:
     dependencies:
       NBA
 
+  insert-boxscores-into-db-2016-2017:
+    source-dirs: app/
+    main: InsertTeamGameLogsDB.hs
+    
+    dependencies:
+      NBA
+
 tests:
   MyFirstProject-test:
     source-dirs: test/

@@ -68,6 +68,7 @@ executable fill-boxscores-into-db-2016-2017
   other-modules:
       FillGamesDB
       FillTeamsDB
+      InsertTeamGameLogsDB
   default-language: Haskell2010
 
 executable fill-games-into-db-2016-2017
@@ -96,6 +97,7 @@ executable fill-games-into-db-2016-2017
   other-modules:
       FillBoxScoresDB
       FillTeamsDB
+      InsertTeamGameLogsDB
   default-language: Haskell2010
 
 executable fill-teams-into-db-2016-2017
@@ -124,6 +126,36 @@ executable fill-teams-into-db-2016-2017
   other-modules:
       FillBoxScoresDB
       FillGamesDB
+      InsertTeamGameLogsDB
+  default-language: Haskell2010
+
+executable insert-boxscores-into-db-2016-2017
+  main-is: InsertTeamGameLogsDB.hs
+  hs-source-dirs:
+      app/
+  ghc-options: -Wall -Werror
+  build-depends:
+      aeson
+    , async
+    , base
+    , base64-bytestring
+    , bson
+    , bytestring
+    , http-client
+    , http-conduit
+    , http-types
+    , lens
+    , lens-aeson
+    , mongoDB
+    , stm
+    , text
+    , time
+    , wreq
+    , NBA
+  other-modules:
+      FillBoxScoresDB
+      FillGamesDB
+      FillTeamsDB
   default-language: Haskell2010
 
 test-suite MyFirstProject-test
